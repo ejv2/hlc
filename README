@@ -1,0 +1,90 @@
+hlc - high(er) level C utilities
+================================
+
+C is notoriously difficult to get basic things completely right in unless you
+know what you are doing. Hopefully, I know a little of what I am doing. hlc is
+a collection of some nice, basic C utilities that can make your code a little
+safer and easier to read and get around this limitation of an otherwise quite
+pleasant language.
+
+These do not replace the C standard library and should not be used everywhere,
+but they are as portable as I can manage and tend to have few or no
+dependencies. Most are in a single header file. More complicated utilities may
+compile to a library or other object format, but, in general, these are
+designed to just be dropped into your source tree.
+
+How to use
+----------
+
+1. Grab the header file that looks of use to you
+2. Copy it (with the licence comment included) into your source tree
+3. #include it in your code having already #included any headers marked as
+   dependencies in the doc comment
+
+Table of Contents
+-----------------
+
+str.h:   a portable and efficient Pascal-like strings implementation with
+         associated utilities
+vect.h:  a safe, portable and TYPE-SAFE, C++-like vector implementation
+slice.h: an abstraction over any dynamic container with a length and
+         capacity, Go style
+sync.h:  (REQUIRES C11*) an implementation of a spinlock, mutex and atomic
+         variables
+chan.h:  (REQUIRES C11*) an implementation of 
+
+--
+* (REQUIRES C11): Any compiler which implements C11-style atomics is sufficient
+
+Information
+-----------
+
+UTF-8:
+~~~~~
+
+Supported, but only in that most of the library routines carefully step around
+interpreting the contents of a string.
+
+Namespace pollution:
+~~~~~~~~~~~~~~~~~~~~
+
+hlc declares types under the <typename>_t namespace, which could cause clashes
+if any already exist. Other than that, each utility only declares symbols under
+the namespace of their purpose (strings: "str_", slices: "slc_"). Internal
+symbols are prefixed with an underscore  (strings: "_str_", slices: "_slc_").
+hlc headers declare everything to be static and some to be inline, such that
+only the current translation unit will be affected by the definitions. This is
+by design, as anything else would make it impossible to use the library in
+multiple translation units.
+
+I/O Routines:
+~~~~~~~~~~~~~
+
+Some features that may be considered "basic" (such as returning a char * from
+stdin) are deliberately omitted, as they are carry overs from other languages
+and do not fit the design of C. Instead, for example, read input in known-sized
+chunks and process it from there, rather than needlessly copying an unbounded
+amount into your process memory space and processing it later. Obviously,
+feature omissions happen so please do not be afraid to request an addition.
+
+Errors from #include(s):
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Please read the doc comment for the header to check which standard library
+headers it requires. Alternatively, define the macro HLC_AUTO_INCLUDE or the
+same for the header's namespace (eg for strings: STR_AUTO_INCLUDE).
+
+Minimum C version:
+~~~~~~~~~~~~~~~~~~
+
+Mostly C99, but some headers require C11 for various reasons which are made
+clear in the table of contents and doc comments.
+
+Influences
+----------
+
+hlc is heavily influenced by both the standard libraries of Go (https://go.dev/)
+and Rust (https://www.rust-lang.org/).
+
+It is also influenced by my own experiences of writing C programs and being
+irritated by some specific issues posed.
