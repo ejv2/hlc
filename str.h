@@ -5,6 +5,10 @@
  * Requirements: stdlib.h, limits.h
  */
 
+#ifdef HLC_AUTO_INCLUDE
+#define STR_AUTO_INCLUDE
+#endif
+
 #ifdef STR_AUTO_INCLUDE
 #include <stdlib.h>
 #include <limits.h>
