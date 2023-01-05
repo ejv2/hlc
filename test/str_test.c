@@ -98,10 +98,61 @@ void test_compact()
 	printf("compacted: \"%s\"\n", str_cstr(&str));
 }
 
+void test_clone()
+{
+	string_t a = str_from(testptr);
+	string_t b = str_clone(&a);
+
+	a.s[0] = '0';
+	if (a.s[0] == b.s[0]) {
+		printf("expected cloned string to remain separate, both were modified");
+	}
+	printf("orig: %s\tclone: %s\n", str_cstr(&a), str_cstr(&b));
+}
+
+void test_equal()
+{
+	string_t a = str_from("string1");
+	string_t b = str_from("string1");
+
+	if (!str_equal(&a, &b)) {
+		printf("expected `%s` and `%s` to be equal\n", str_cstr(&a), str_cstr(&b));
+		exit(1);
+	}
+
+	string_t ncmp = str_from("different string");
+	if (str_equal(&a, &ncmp)) {
+		printf("expected `%s` and `%s` to *not* be equal\n", str_cstr(&a), str_cstr(&ncmp));
+		exit(1);
+	}
+}
+
+void test_compare()
+{
+	string_t a = str_from("abcdef");
+	string_t b = str_from("zyx");
+
+	if (str_compare(&a, &b) >= 0) {
+		printf("lexicographic comparison of string with greater should return <0, got %d\n", str_compare(&a, &b));
+		exit(1);
+	}
+	if (str_compare(&b, &a) <= 0) {
+		printf("lexicographic comparison of string with lesser should return >0, got %d\n", str_compare(&b, &a));
+		exit(1);
+	}
+	if (str_compare(&a, &a) != 0) {
+		printf("lexicographic comparison of string with itself should return zero, got %d\n", str_compare(&a, &a));
+		exit(1);
+	}
+}
+
 int main(void)
 {
 	test_new();
 	test_trunc();
 	test_grow();
 	test_compact();
+	test_clone();
+	test_equal();
+	test_compare();
 }

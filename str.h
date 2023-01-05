@@ -20,6 +20,9 @@
 /* The maximum size of a string in bytes */
 #define STR_SIZE_MAX ((size_t)-1)
 
+/* prototype to avoid dependency on string.h */
+extern void *memcpy (void *__dest, const void *__src, size_t __n);
+
 /*
  * string_t is a dynamically sized string with an associated length. Although
  * string_t emulates the style of a Pascal string, a null byte is still used to
@@ -220,7 +223,52 @@ static string_t str_from(const char *cstr)
  * The results of this function may be invalid after any call which modifies
  * the string. *Never* save the results of this function.
  */
-static const char *str_cstr(const string_t *str)
+static char *str_cstr(const string_t *str)
 {
 	return str->s;
+}
+
+/*
+ * str_clone constructs and returns a fresh copy of str. A new heap block is
+ * allocated to store the new copy, as in strdup, unless the string has zero
+ * length, in which case no allocation takes place.
+ */
+static string_t str_clone(const string_t *str)
+{
+	if (str_len(str) == 0) {
+		return (string_t){NULL, NULL, 0};
+	}
+	return str_from(str_cstr(str));
+}
+
+/*
+ * str_equal returns true (>0) if string a and b are the same length and
+ * contain the same text, else returns false (0).
+ */
+static int str_equal(const string_t *a, const string_t *b)
+{
+	if (str_len(a) != str_len(b))
+		return 0;
+
+	for (const char *walk = a->s; walk != a->e; walk++) {
+		size_t i = (size_t)(walk - a->s);
+		if (*walk != b->s[i])
+			return 0;
+	}
+
+	return 1;
+}
+
+/*
+ * str_compare lexicographically compares a and b using the same method as the
+ * standard library's strcmp, but more efficiently for this style of string. If
+ * string a, when sorted lexicographically, would come after string b, the
+ * returned value is greater than zero. If the strings are equal, zero is
+ * returned. Else, a negative  integer is returned.
+ */
+static int str_compare(const string_t *a, const string_t *b)
+{
+	const char *wa = a->s, *wb = b->s;
+	for (; *wa==*wb && *wa; wa++, wb++);
+	return *(unsigned char *)wa - *(unsigned char *)wb;
 }
