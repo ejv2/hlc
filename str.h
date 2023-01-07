@@ -20,9 +20,6 @@
 /* The maximum size of a string in bytes */
 #define STR_SIZE_MAX ((size_t)-1)
 
-/* prototype to avoid dependency on string.h */
-extern void *memcpy (void *__dest, const void *__src, size_t __n);
-
 /*
  * string_t is a dynamically sized string with an associated length. Although
  * string_t emulates the style of a Pascal string, a null byte is still used to
@@ -271,4 +268,45 @@ static int str_compare(const string_t *a, const string_t *b)
 	const char *wa = a->s, *wb = b->s;
 	for (; *wa==*wb && *wa; wa++, wb++);
 	return *(unsigned char *)wa - *(unsigned char *)wb;
+}
+
+/*
+ * str_contains returns true if the string str contains the substring substr at
+ * any position.
+ */
+static int str_contains(const string_t *str, const char *substr)
+{
+	const char *walk, *subwalk = substr;
+	for (walk = str->s; walk <= str->e; walk++) {
+		/* *subwalk is null byte, we walked the whole substring, so match */
+		if (*subwalk == '\0') {
+			return 1;
+		}
+
+		/* not a match, reset subwalk */
+		if (*walk != *subwalk) {
+			subwalk = substr;
+			continue;
+		}
+
+		/* match; increment subwalk along with walk */
+		subwalk++;
+	}
+
+	/* reached end with no return; no match */
+	return 0;
+}
+
+/*
+ * str_contains_char returns true (>0) if string str contains the character c,
+ * else returns false (0).
+ */
+static int str_contains_char(const string_t *str, char c)
+{
+	for (const char *walk = str->s; walk != str->e; walk++) {
+		if (*walk == c)
+			return 1;
+	}
+
+	return 0;
 }

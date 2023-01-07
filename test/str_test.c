@@ -144,6 +144,45 @@ void test_compare()
 		printf("lexicographic comparison of string with itself should return zero, got %d\n", str_compare(&a, &a));
 		exit(1);
 	}
+
+	str_free(&a);
+	str_free(&b);
+}
+
+void test_contains()
+{
+	string_t a = str_from("Hello, world!");
+
+	if (!str_contains(&a, "ello")) {
+		printf("expected a to contain `ello` (string: %s)\n", str_cstr(&a));
+		exit(1);
+	}
+
+	if (!str_contains(&a, "ld!")) {
+		printf("expected a to contain `ld!` (string: %s)\n", str_cstr(&a));
+		exit(1);
+	}
+
+	if (!str_contains(&a, "H")) {
+		printf("expected a to contain `H` (string: %s)\n", str_cstr(&a));
+		exit(1);
+	}
+
+	if (str_contains(&a, "H!")) {
+		printf("expected a *not* to contain `H!` (string: %s)\n", str_cstr(&a));
+		exit(1);
+	}
+}
+
+void test_contains_char()
+{
+	string_t a = str_from("abcdefghijklmnopqrstuvwxyz");
+	for (char c = 'a'; c <= 'z'; c++) {
+		if (!str_contains_char(&a, c)) {
+			printf("expected alphabet to contain all characters, got '%c' not matching\n", c);
+			exit(1);
+		}
+	}
 }
 
 int main(void)
@@ -155,4 +194,6 @@ int main(void)
 	test_clone();
 	test_equal();
 	test_compare();
+	test_contains();
+	test_contains_char();
 }
