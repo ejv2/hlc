@@ -258,6 +258,37 @@ static string_t str_clone(const string_t *str)
 }
 
 /*
+ * str_concat returns a newly allocated string which stores the concatenation
+ * of a and b. If allocation fails or the value would exceed the maximum
+ * capacity, an empty string is returned.
+ */
+static string_t str_concat(const string_t *a, const string_t *b)
+{
+	string_t work = str_new();
+	if (!str_grow(&work, str_len(a) + str_len(b)))
+		return work;
+
+	const char *walk = a->s;
+	if (walk) {
+		do {
+			*work.e = *walk;
+			walk++, work.e++;
+		} while (walk < a->e);
+	}
+
+	walk = b->s;
+	if (walk) {
+		do {
+			*work.e = *walk;
+			walk++, work.e++;
+		} while (walk < b->e);
+	}
+
+	*work.e = '\0';
+	return work;
+}
+
+/*
  * str_equal returns true (>0) if string a and b are the same length and
  * contain the same text, else returns false (0).
  */

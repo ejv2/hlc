@@ -225,6 +225,81 @@ void test_contains_char()
 	str_free(&a);
 }
 
+void test_concat()
+{
+	string_t pref = str_from("Hello,"), suff = str_from(" world!");
+	string_t concat = str_concat(&pref, &suff);
+
+	if (strcmp("Hello, world!", str_cstr(&concat))) {
+		printf("expected test string to match after concat, got \"%s\"\n", str_cstr(&concat));
+		exit(1);
+	}
+	if (strlen(str_cstr(&concat)) != str_len(&concat)) {
+		printf("probably missing nullbyte in str (strlen: %lu, len: %lu): \"%s\"\n",
+				strlen(str_cstr(&concat)), str_len(&concat), str_cstr(&concat));
+
+		char val = 0;
+		for (unsigned int i = 0; !val; i++) {
+			val = *(concat.e - i);
+			printf("value of ->(e - %u): '%d'\n", i, val);
+
+		}
+
+		exit(1);
+	}
+	printf("single concat: \"%s\"\n", str_cstr(&concat));
+
+	/* double concat */
+	string_t dconcat = str_concat(&pref, &concat);
+	if (strcmp("Hello,Hello, world!", str_cstr(&dconcat))) {
+		printf("expected test string to match after double concat, got \"%s\"\n", str_cstr(&dconcat));
+		exit(1);
+	}
+	printf("double concat: \"%s\"\n", str_cstr(&dconcat));
+
+	/* long concat */
+	string_t lstring = str_from("abcdefghijklmnopqrstuvwxyz012345678910111213141516");
+	string_t lconcat = str_concat(&pref, &lstring);
+	if (strcmp("Hello,abcdefghijklmnopqrstuvwxyz012345678910111213141516", str_cstr(&lconcat))) {
+		for (const char *walk = lconcat.s; walk != lconcat.e; walk++) {
+			printf("%d, ", *walk);
+		}
+		putchar('\n');
+
+		printf("expected test string to match after double concat, got \"%s\"\n", str_cstr(&lconcat));
+		exit(1);
+	}
+	printf("long concat: \"%s\"\n", str_cstr(&lconcat));
+
+	/* null concat */
+	string_t nulla, nullb;
+	string_t app = str_from("sentinel");
+	memset(&nulla, 0, sizeof(nulla));
+	memset(&nullb, 0, sizeof(nullb));
+
+	string_t na = str_concat(&nulla, &app);
+	string_t nb = str_concat(&app, &nullb);
+	if (strcmp("sentinel", str_cstr(&na))) {
+		printf("expected null string to be ignored, got: \"%s\"", str_cstr(&na));
+		exit(1);
+	}
+	if (strcmp("sentinel", str_cstr(&nb))) {
+		printf("expected null string to be ignored, got: \"%s\"", str_cstr(&nb));
+		exit(1);
+	}
+	printf("null concats: (%s, %s)\n", str_cstr(&na), str_cstr(&nb));
+
+	str_free(&pref);
+	str_free(&suff);
+	str_free(&lstring);
+	str_free(&concat);
+	str_free(&dconcat);
+	str_free(&lconcat);
+	str_free(&app);
+	str_free(&na);
+	str_free(&nb);
+}
+
 int main(void)
 {
 	test_new();
@@ -237,4 +312,5 @@ int main(void)
 	test_compare();
 	test_contains();
 	test_contains_char();
+	test_concat();
 }
