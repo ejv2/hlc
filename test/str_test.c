@@ -87,6 +87,29 @@ void test_grow()
 	}
 }
 
+void test_reserve()
+{
+	string_t str = str_from(testptr);
+	size_t curlen = str_len(&str);
+	size_t curcap = str_cap(&str);
+
+	/*
+	 * we need to ensure that we reserve for 5 extra characters.
+	 * so, check how much more we need to reach cap and add 5 characters.
+	 */
+	size_t want = (curcap - curlen) + 5;
+	str_reserve(&str, want);
+	if (str_cap(&str) - curcap != 5) {
+		printf("want delta cap = 5, got %lu (total: %lu)\n",
+			str_cap(&str) - curcap,
+			str_cap(&str));
+		exit(1);
+	}
+
+	str_free(&str);
+}
+
+
 void test_compact()
 {
 	string_t str = str_from(testptr);
@@ -190,6 +213,7 @@ int main(void)
 	test_new();
 	test_trunc();
 	test_grow();
+	test_reserve();
 	test_compact();
 	test_clone();
 	test_equal();

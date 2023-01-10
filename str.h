@@ -134,6 +134,25 @@ static int str_grow(string_t *str, size_t delta)
 }
 
 /*
+ * str_reserve ensures that string str can store at least delta more characters
+ * with no reallocation, but does not grow the string if the capacity is
+ * already sufficient. Returns -1 if the capacity was already sufficient.
+ * Returns zero if reallocation was attempted but failed and returns one on
+ * success.
+ */
+static int str_reserve(string_t *str, size_t delta)
+{
+	size_t cap = str_cap(str);
+	size_t len = str_len(str);
+
+	if (cap - len >= delta) {
+		return -1;
+	}
+
+	return str_grow(str, delta);
+}
+
+/*
  * str_compact shrinks the string to the minimum size required to store all
  * data in the string. This is useful after all processing is complete and a
  * string is to be stored, but will cause poorer than ideal performance if
