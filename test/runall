@@ -2,7 +2,7 @@
 
 for f in *_test.c
 do
-	${CC:-gcc} -Wall -Wpedantic -Wextra -Werror -o "$f.out" "$f" || exit 1
+	${CC:-gcc} -g -fsanitize=address -Wall -Wpedantic -Wextra -Werror -o "$f.out" "$f" || exit 1
 	echo "$f:"
 	./$f.out || exit 1
 	rm "$f.out"
