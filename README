@@ -1,11 +1,14 @@
 hlc - high(er) level C utilities
 ================================
 
+hlc is a collection of some nice, basic C utilities that can make your code a
+little safer and easier to read. These are mostly header-only libraries that I
+have collected through having written quite a bit of C.
+
 C is notoriously difficult to get basic things completely right in unless you
-know what you are doing. Hopefully, I know a little of what I am doing. hlc is
-a collection of some nice, basic C utilities that can make your code a little
-safer and easier to read and get around this limitation of an otherwise quite
-pleasant language.
+know what you are doing. Hopefully, I know a little of what I am doing, as I
+have written an equivalent of all these utilities several times for each
+project. So, I thought I would collect them all together.
 
 These do not replace the C standard library and should not be used everywhere,
 but they are as portable as I can manage and tend to have few or no
