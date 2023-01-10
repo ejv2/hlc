@@ -37,6 +37,7 @@ void test_new()
 		printf("expected new string to have same length as original (orig: %lu, new: %lu)\n", strlen(testptr), str_len(&str3));
 	}
 	printf("%s (cap: %ld)\n", str_cstr(&str3), str_cap(&str3));
+
 	str_free(&str3);
 }
 
@@ -69,6 +70,7 @@ void test_trunc()
 		printf("expected string reset to zero length, got %ld\n", str_len(&zstr));
 		exit(1);
 	}
+
 	str_free(&zstr);
 }
 
@@ -85,6 +87,8 @@ void test_grow()
 			exit(1);
 		}
 	}
+
+	str_free(&str);
 }
 
 void test_reserve()
@@ -119,6 +123,8 @@ void test_compact()
 		exit(1);
 	}
 	printf("compacted: \"%s\"\n", str_cstr(&str));
+
+	str_free(&str);
 }
 
 void test_clone()
@@ -131,6 +137,9 @@ void test_clone()
 		printf("expected cloned string to remain separate, both were modified");
 	}
 	printf("orig: %s\tclone: %s\n", str_cstr(&a), str_cstr(&b));
+
+	str_free(&a);
+	str_free(&b);
 }
 
 void test_equal()
@@ -148,6 +157,10 @@ void test_equal()
 		printf("expected `%s` and `%s` to *not* be equal\n", str_cstr(&a), str_cstr(&ncmp));
 		exit(1);
 	}
+
+	str_free(&a);
+	str_free(&b);
+	str_free(&ncmp);
 }
 
 void test_compare()
@@ -195,6 +208,8 @@ void test_contains()
 		printf("expected a *not* to contain `H!` (string: %s)\n", str_cstr(&a));
 		exit(1);
 	}
+
+	str_free(&a);
 }
 
 void test_contains_char()
@@ -206,6 +221,8 @@ void test_contains_char()
 			exit(1);
 		}
 	}
+
+	str_free(&a);
 }
 
 int main(void)
