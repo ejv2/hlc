@@ -10,6 +10,27 @@
 vect_declare(int, vector_int);
 vect_declare(const char *, vector_str);
 
+int iterfunc(size_t i, const char *elem)
+{
+	printf("[%lu] %s\n", i, elem);
+	return 1;
+}
+
+void iter_test()
+{
+	vector_str names = vect_init(vector_str);
+	vect_append(&names, "Tom");
+	vect_append(&names, "Dick");
+	vect_append(&names, "Harry");
+	vect_append(&names, "Neville");
+	vect_append(&names, "Jack");
+	vect_append(&names, "Richard");
+
+	printf("All names stored:\n");
+	vect_foreach(&names, &iterfunc);
+	vect_destroy(&names);
+}
+
 int main(void)
 {
 	vector_int v = vect_init(vector_int);
@@ -42,6 +63,8 @@ int main(void)
 	vector_str v3 = vect_init(vector_str);
 	vect_append(&v3, check);
 	printf("%s\n", vect_get(&v3, 0));
+
+	iter_test();
 
 	vect_destroy(&v);
 	vect_destroy(&v2);

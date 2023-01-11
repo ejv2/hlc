@@ -142,6 +142,7 @@ static int _vect_contains(struct _vect_t *v, size_t ts, void *val)
  * static).
  */
 #define _vect_declare(type, tname, tstore)						\
+	typedef int(*tname##_iterfunc)(size_t i, type elem);				\
 	typedef struct tname##_struct {							\
 		struct _vect_t v;							\
 		/* function impls */							\
@@ -150,6 +151,7 @@ static int _vect_contains(struct _vect_t *v, size_t ts, void *val)
 		void (*set)(struct tname##_struct *this, size_t ind, type val);		\
 		size_t (*len)(struct tname##_struct *this);				\
 		size_t (*cap)(struct tname##_struct *this);				\
+		void (*foreach)(struct tname##_struct *this, tname##_iterfunc iter);	\
 		int (*empty)(struct tname##_struct *this);				\
 		int (*contains)(struct tname##_struct *this, type val);			\
 		void (*clear)(struct tname##_struct *this);				\
@@ -182,6 +184,13 @@ static int _vect_contains(struct _vect_t *v, size_t ts, void *val)
 			abort();									\
 		}											\
 	}												\
+	tstore void tname##_vect_foreach(struct tname##_struct *this, tname##_iterfunc iter)		\
+	{												\
+		for (size_t i = 0; i < this->v.len; i++) {						\
+			if (!iter(i, *((const type *)_vect_get(&this->v, i, sizeof(type)))))		\
+				return;									\
+		}											\
+	}												\
 	tstore size_t tname##_vect_len(struct tname##_struct *this)	\
 	{								\
 		return this->v.len;					\
@@ -212,6 +221,7 @@ static int _vect_contains(struct _vect_t *v, size_t ts, void *val)
 		ret.set = tname##_vect_set;		\
 		ret.len = tname##_vect_len;		\
 		ret.cap = tname##_vect_cap;		\
+		ret.foreach = tname##_vect_foreach;	\
 		ret.empty = tname##_vect_empty;		\
 		ret.contains = tname##_vect_contains;	\
 		ret.destroy = tname##_vect_destroy;	\
@@ -310,3 +320,10 @@ static int _vect_contains(struct _vect_t *v, size_t ts, void *val)
  * vect_append appends val to the end of the vector pointed to by vect.
  */
 #define vect_append(vect, val) (vect)->append(vect, val)
+
+/*
+ * vect_foreach calls the handle function iter for each element contained in
+ * vect. iter must accept a size_t argument i and a <type> argument elem, which
+ * will be the index and item (passed by value) respectively.
+ */
+#define vect_foreach(vect, iter) (vect)->foreach(vect, iter)
