@@ -6,7 +6,7 @@ x (A) str.h: initial implementation +string @container
 (A) str.h: indexing, replacing and iterating +string @container
 x (A) vect.h: initial implementation +vect @container
 x (A) vect.h: contains +vect @container
-(A) vect.h: iterator +vect @container
+x (A) vect.h: iterator +vect @container
 (B) sync.h: initial spinlock +sync @lock
 (B) sync.h: initial mutex +sync @lock
 (B) sync.h: initial atomics +sync @lock
