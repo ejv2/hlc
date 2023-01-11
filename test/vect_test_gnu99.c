@@ -16,11 +16,18 @@
 #define HLC_AUTO_INCLUDE
 #include "../vect.h"
 
+int foreach(size_t i, int elem)
+{
+	printf("[%lu] => %d\n", i, elem);
+}
+
 int main(int argc, char **argv)
 {
 	vect_new(int, ivect);
 	vect_append(&ivect, 1234);
-	printf("%d\n", vect_get(&ivect, 0));
+	vect_append(&ivect, 5678);
+	vect_foreach(&ivect, foreach);
+	vect_destroy(&ivect);
 }
 
 /* vim: ft=c
