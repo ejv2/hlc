@@ -70,7 +70,7 @@ static int _vect_append(struct _vect_t *v, void *t, size_t ts)
 	}
 	v->len++;
 
-	arith = (uintptr_t)v->buf + (v->len - 1);
+	arith = (uintptr_t)v->buf + ((v->len - 1) * ts);
 	memcpy((void *)arith, t, ts);
 	return 1;
 }
@@ -79,13 +79,13 @@ static int _vect_append(struct _vect_t *v, void *t, size_t ts)
  * Internal: returns a pointer to the value at index ind, or NULL if ind is out
  * of range.
  */
-static void *_vect_get(struct _vect_t *v, size_t ind)
+static void *_vect_get(struct _vect_t *v, size_t ind, size_t ts)
 {
 	if (ind >= v->len) {
 		return NULL;
 	}
 
-	return (void *)((uintptr_t)v->buf + ind);
+	return (void *)((uintptr_t)v->buf + (ind * ts));
 }
 
 /*
@@ -101,7 +101,7 @@ static int _vect_set(struct _vect_t *v, size_t ind, size_t ts, void *val)
 	if (ind >= v->len)
 		return 0;
 
-	arith = (uintptr_t)v->buf + ind;
+	arith = (uintptr_t)v->buf + (ind * ts);
 	memcpy((void *)arith, val, ts);
 	return 1;
 }
@@ -166,7 +166,7 @@ static int _vect_contains(struct _vect_t *v, size_t ts, void *val)
 		this->v.cap = this->v.len = 0;						\
 	}										\
 	tstore type tname##_vect_get(struct tname##_struct *this, size_t ind) { 			\
-		type *t = (type *)_vect_get(&this->v, ind);						\
+		type *t = (type *)_vect_get(&this->v, ind, sizeof(type));				\
 		if (!t) {										\
 			fprintf(stderr, "PANIC: vector access out of range (index: %lu, len: %lu)\n",	\
 					ind, this->v.len);						\
