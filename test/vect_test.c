@@ -8,6 +8,7 @@
 #include "../vect.h"
 
 vect_declare(int, vector_int);
+vect_declare(const char *, vector_str);
 
 int main(void)
 {
@@ -27,6 +28,8 @@ int main(void)
 	printf("%d\n", vect_get(&v, 2));
 	printf("aftermath: (len: %lu, cap: %lu)\n", vect_len(&v), vect_cap(&v));
 
+	printf("contains value? %d\n", vect_contains(&v, 0x101));
+
 	vector_int v2 = vect_init(vector_int);
 	printf("empty? %s\n", vect_empty(&v) ? "true" : "false");
 	printf("empty (v2)? %s\n", vect_empty(&v2) ? "true" : "false");
@@ -34,6 +37,11 @@ int main(void)
 	vect_clear(&v);
 	printf("empty (v1 aftermath)? %s\n", vect_empty(&v) ? "true" : "false");
 	printf("aftermath details: (len: %lu, cap: %lu)\n", vect_len(&v), vect_cap(&v));
+
+	const char *check = "Ethan";
+	vector_str v3 = vect_init(vector_str);
+	vect_append(&v3, check);
+	printf("%s\n", vect_get(&v3, 0));
 
 	vect_destroy(&v);
 	vect_destroy(&v2);
