@@ -45,4 +45,5 @@ int main(void)
 
 	vect_destroy(&v);
 	vect_destroy(&v2);
+	vect_destroy(&v3);
 }
