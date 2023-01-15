@@ -300,6 +300,57 @@ void test_concat()
 	str_free(&nb);
 }
 
+void test_append()
+{
+	string_t a = str_from("prefix-");
+	string_t b = str_from("suffix");
+
+	str_append(&a, &b);
+	if (strcmp(str_cstr(&a), "prefix-suffix")) {
+		printf("expected 'prefix-suffix' from concatenation, got '%s'\n", str_cstr(&a));
+		exit(1);
+	}
+	if (strlen(str_cstr(&a)) != str_len(&a)) {
+		printf("probably missing nullbyte in str (strlen: %lu, len: %lu): \"%s\"\n",
+				strlen(str_cstr(&a)), str_len(&a), str_cstr(&a));
+
+		char val = 0;
+		for (unsigned int i = 0; !val; i++) {
+			val = *(a.e - i);
+			printf("value of ->(e - %u): '%d'\n", i, val);
+		}
+
+		exit(1);
+	}
+	printf("append: %s\n", str_cstr(&a));
+
+	string_t pref = str_from("alphabet+: ");
+	string_t longstr = str_from("abcdefghijklmnopqrstuvwxyz12345678910111213141516!");
+	str_append(&pref, &longstr);
+	if (strcmp(str_cstr(&pref), "alphabet+: abcdefghijklmnopqrstuvwxyz12345678910111213141516!")) {
+		printf("wrong result from concatenation, got '%s'\n", str_cstr(&pref));
+		exit(1);
+	}
+	if (strlen(str_cstr(&pref)) != str_len(&pref)) {
+		printf("probably missing nullbyte in str (strlen: %lu, len: %lu): \"%s\"\n",
+				strlen(str_cstr(&pref)), str_len(&pref), str_cstr(&pref));
+
+		char val = 0;
+		for (unsigned int i = 0; !val; i++) {
+			val = *(pref.e - i);
+			printf("value of ->(e - %u): '%d'\n", i, val);
+		}
+
+		exit(1);
+	}
+	printf("long append: %s\n", str_cstr(&pref));
+
+	str_free(&a);
+	str_free(&b);
+	str_free(&pref);
+	str_free(&longstr);
+}
+
 int main(void)
 {
 	test_new();
@@ -313,4 +364,5 @@ int main(void)
 	test_contains();
 	test_contains_char();
 	test_concat();
+	test_append();
 }

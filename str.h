@@ -289,6 +289,24 @@ static string_t str_concat(const string_t *a, const string_t *b)
 }
 
 /*
+ * str_append appends src to dst in place, guaranteeing that only a single
+ * (re)allocation may take place.
+ */
+static void str_append(string_t *dst, const string_t *src)
+{
+	if (!src)
+		return;
+	if (!str_reserve(dst, str_len(src)))
+		return;
+
+	for (const char *walk = src->s; walk < src->e; walk++) {
+		*(dst->e++) = *walk;
+	}
+	*dst->e = '\0';
+	return;
+}
+
+/*
  * str_equal returns true (>0) if string a and b are the same length and
  * contain the same text, else returns false (0).
  */
