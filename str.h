@@ -2,7 +2,7 @@
  * str.h - C99 implementation of a high-level string
  * Copyright (C) Ethan Marshall - 2023
  *
- * Requirements: stdlib.h, limits.h
+ * Requirements: stdlib.h, stdio.h, limits.h
  */
 
 #ifdef HLC_AUTO_INCLUDE
@@ -11,6 +11,7 @@
 
 #ifdef STR_AUTO_INCLUDE
 #include <stdlib.h>
+#include <stdio.h>
 #include <limits.h>
 #endif
 
@@ -286,6 +287,34 @@ static string_t str_concat(const string_t *a, const string_t *b)
 
 	*work.e = '\0';
 	return work;
+}
+
+/*
+ * str_get returns the ith character from string s. If i is out of range,
+ * str_get calls abort with a failure message.
+ */
+static char str_get(string_t *s, size_t i)
+{
+	if (i > str_len(s)) {
+		printf("PANIC: string index out of range (i: %lu, len: %lu)\n", i, str_len(s));
+		abort();
+	}
+
+	return s->s[i];
+}
+
+/*
+ * str_set sets the byte at index i to the value c. If i is out of range,
+ * str_set calls abort with a failure message.
+ */
+static void str_set(string_t *s, size_t i, char c)
+{
+	if (i > str_len(s)) {
+		printf("PANIC: string index out of range (i: %lu, len: %lu)\n", i, str_len(s));
+		abort();
+	}
+
+	s->s[i] = c;
 }
 
 /*
