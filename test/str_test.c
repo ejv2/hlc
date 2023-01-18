@@ -363,6 +363,25 @@ void test_fmt()
 	str_free(&str);
 }
 
+void test_ind()
+{
+	string_t s = str_from("abcdefg");
+	char c;
+
+	if ((c = str_get(&s, 2)) != 'c') {
+		printf("expected 'c', got '%c'\n", c);
+		exit(1);
+	}
+
+	str_set(&s, 2, 'f');
+	if ((c = str_get(&s, 2)) != 'f') {
+		printf("expected 'f' after set, got '%c'\n", c);
+		exit(1);
+	}
+
+	str_free(&s);
+}
+
 int main(void)
 {
 	test_new();
@@ -378,4 +397,5 @@ int main(void)
 	test_concat();
 	test_append();
 	test_fmt();
+	test_ind();
 }
