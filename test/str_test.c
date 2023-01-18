@@ -382,6 +382,31 @@ void test_ind()
 	str_free(&s);
 }
 
+void test_prefsuff()
+{
+	string_t str = str_from("pref_irrelevant_suff");
+
+	if (!str_suffixed(&str, "suff")) {
+		printf("wrong result from str_suffixed for %s\n", str_cstr(&str));
+		exit(1);
+	}
+	if (!str_prefixed(&str, "pref")) {
+		printf("wrong result from str_prefixed for %s\n", str_cstr(&str));
+		exit(1);
+	}
+
+	if (str_suffixed(&str, "wrong")) {
+		printf("wrong result from !str_suffixed for %s\n", str_cstr(&str));
+		exit(1);
+	}
+	if (str_prefixed(&str, "still_wrong")) {
+		printf("wrong result from !str_prefixed for %s\n", str_cstr(&str));
+		exit(1);
+	}
+
+	str_free(&str);
+}
+
 int main(void)
 {
 	test_new();
@@ -398,4 +423,5 @@ int main(void)
 	test_append();
 	test_fmt();
 	test_ind();
+	test_prefsuff();
 }

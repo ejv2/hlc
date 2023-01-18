@@ -443,3 +443,40 @@ static int str_contains_char(const string_t *str, char c)
 
 	return 0;
 }
+
+/*
+ * str_prefixed returns true (>0) if string str begins with the string pref
+ */
+static int str_prefixed(const string_t *str, const char *pref)
+{
+	for (const char *walk = str->s, *swalk = pref; *swalk; walk++, swalk++) {
+		if (*walk != *swalk)
+			return 0;
+	}
+
+	return 1;
+}
+
+/*
+ * str_suffixed returns true (>0) if string str ends with the string suff.
+ */
+static int str_suffixed(const string_t *str, const char *suff)
+{
+	const char *walk = str->e, *swalk;
+	size_t sufflen = 0;
+
+	/* first we need strlen of suffix */
+	for (const char *walk = suff; *walk; walk++, sufflen++);
+
+	/* walk back to where the suffix should begin */
+	walk -= sufflen;
+	if (walk < str->s)
+		return 0;
+
+	for (swalk = suff; walk < str->e; walk++, swalk++) {
+		if (*walk != *swalk)
+			return 0;
+	}
+
+	return 1;
+}
