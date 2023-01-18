@@ -351,6 +351,18 @@ void test_append()
 	str_free(&longstr);
 }
 
+void test_fmt()
+{
+	string_t str = str_fmt("Hello, my name is %s and I am %d years old", "ejv2", 1024);
+	if (str_len(&str) != strlen(str_cstr(&str))) {
+		printf("possibly missing nullbyte after format (len: %lu, strlen: %lu)\n", str_len(&str), strlen(str_cstr(&str)));
+		exit(1);
+	}
+	printf("%s (len: %lu, strlen: %lu)\n", str_cstr(&str), str_len(&str), strlen(str_cstr(&str)));
+
+	str_free(&str);
+}
+
 int main(void)
 {
 	test_new();
@@ -365,4 +377,5 @@ int main(void)
 	test_contains_char();
 	test_concat();
 	test_append();
+	test_fmt();
 }

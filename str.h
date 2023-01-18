@@ -2,7 +2,7 @@
  * str.h - C99 implementation of a high-level string
  * Copyright (C) Ethan Marshall - 2023
  *
- * Requirements: stdlib.h, stdio.h, limits.h
+ * Requirements: stdarg.h, stdlib.h, stdio.h, limits.h
  */
 
 #ifdef HLC_AUTO_INCLUDE
@@ -12,6 +12,7 @@
 #ifdef STR_AUTO_INCLUDE
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdarg.h>
 #include <limits.h>
 #endif
 
@@ -333,6 +334,41 @@ static void str_append(string_t *dst, const string_t *src)
 	}
 	*dst->e = '\0';
 	return;
+}
+
+/*
+ * str_fmt formats a string as though it were returned by sprintf, guaranteeing
+ * that only a single allocation may take place and that the resulting data
+ * cannot overflow the stack. If allocation fails or fmt contains a syntax
+ * error, an empty string is returned.
+ */
+static string_t str_fmt(const char *fmt, ...)
+{
+	string_t str = (string_t){NULL, NULL, 0};
+	int wlen = 0, written = 0;
+	va_list tmp, args;
+
+	va_start(args, fmt);
+	/* need a copy so that vsprintf does not mess everything up with va_arg */
+	va_copy(tmp, args);
+
+	wlen = vsnprintf(NULL, 0, fmt, args);
+	if (wlen < 0)
+		return str;
+	if (!str_grow(&str, wlen + 1))
+		return str;
+	va_end(args);
+
+	written = vsprintf(str.s, fmt, tmp);
+	va_end(tmp);
+
+	if (written < 0) {
+		str_free(&str);
+		return (string_t){NULL, NULL, 0};
+	}
+	str.e = str.s + written;
+
+	return str;
 }
 
 /*
