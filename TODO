@@ -1,6 +1,7 @@
 x (A) str.h: initial implementation +string @container
 x (A) str.h: append and formatting +string @container
-(A) str.h: index of substring/char +string @container
+(A) ! str.h: index of substring/char +string @container
+(A) ! str.h: substring extraction +string @container
 (A) str.h: trim, strip, format +string @container
 x (A) str.h: contains, suffixes, prefixes +string @container
 x (A) str.h: indexing, replacing and iterating +string @container
