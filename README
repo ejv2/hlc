@@ -29,6 +29,9 @@ Table of Contents
 
 str.h:   a portable and efficient Pascal-like strings implementation with
          associated utilities
+utf.h:   a portable and simple wrapper around standard wide character functions
+         for ease-of-use (should encourage people to actually support wide
+         characters).
 vect.h:  a safe, portable and TYPE-SAFE, C++-like vector implementation
 slice.h: an abstraction over any dynamic container with a length and
          capacity, Go style
