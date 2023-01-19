@@ -407,6 +407,23 @@ void test_prefsuff()
 	str_free(&str);
 }
 
+int test_foreach_f(size_t i, char elem)
+{
+	if (testptr[i] != elem) {
+		printf("expected foreach at elem %lu to return '%c', got '%c'\n", i, testptr[i], elem);
+		exit(1);
+	}
+
+	return 1;
+}
+
+void test_foreach()
+{
+	string_t a = str_from(testptr);
+	str_foreach(&a, &test_foreach_f);
+	str_free(&a);
+}
+
 int main(void)
 {
 	test_new();
@@ -424,4 +441,5 @@ int main(void)
 	test_fmt();
 	test_ind();
 	test_prefsuff();
+	test_foreach();
 }

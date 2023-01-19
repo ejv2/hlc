@@ -45,6 +45,20 @@ typedef struct {
 } string_t;
 
 /*
+ * str_iterfunc is the function signature which can be passed to str_foreach.
+ * i is the iteration loop counter and elem is the current value of the string
+ * at that index.
+ *
+ * If a str_iterfunc returns zero, the foreach loop is terminated.
+ *
+ * Note: This routine is not locale aware. As such, wide character strings may
+ * be iterated in a mangled fashion. If required, you can detect a leading byte
+ * of a wide character and perform buffering, but this is out of scope for this
+ * library.
+ */
+typedef int (*str_iterfunc)(size_t i, char elem);
+
+/*
  * str_new returns a new, ready to use string_t with zero length.
  * If buffer allocation fails, the string will still be valid and will remain
  * at zero length.
@@ -288,6 +302,31 @@ static string_t str_concat(const string_t *a, const string_t *b)
 
 	*work.e = '\0';
 	return work;
+}
+
+/*
+ * str_foreach calls f for every byte in the string s. For caveats when using
+ * wide characters, please see the str_iterfunc doc comment.
+ *
+ * If any operation is performed on the string such as to cause a reallocation
+ * during the walk, str_foreach calls abort with a failure message, as this is
+ * incorrect behavior. Note that no string operation which modifies its memory
+ * layout is safe to call in a str_iterfunc.
+ */
+static void str_foreach(string_t *s, str_iterfunc f)
+{
+	const char *sanity_s = s->s, *sanity_e = s->e;
+
+	for (const char *walk = s->s; walk < s->e; walk++) {
+		if (sanity_s != s->s || sanity_e != s->e) {
+			fprintf(stderr, "PANIC: string incorrectly modified during foreach call (s[before/after]: [%p/%p], e[before/after]: [%p/%p]\n",
+					sanity_s, s->s, sanity_e, s->e);
+			abort();
+		}
+
+		if (!f(walk - s->s, *walk))
+			return;
+	}
 }
 
 /*
