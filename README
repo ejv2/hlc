@@ -37,7 +37,7 @@ slice.h: an abstraction over any dynamic container with a length and
          capacity, Go style
 sync.h:  (REQUIRES C11*) an implementation of a spinlock, mutex and atomic
          variables
-chan.h:  (REQUIRES C11*) an implementation of 
+chan.h:  (REQUIRES C11*) an implementation of a by-value CSP channel, Go style
 
 --
 * (REQUIRES C11): Any compiler which implements C11-style atomics is sufficient
