@@ -297,7 +297,7 @@ static string_t str_concat(const string_t *a, const string_t *b)
 static char str_get(string_t *s, size_t i)
 {
 	if (i > str_len(s)) {
-		printf("PANIC: string index out of range (i: %lu, len: %lu)\n", i, str_len(s));
+		fprintf(stderr, "PANIC: string index out of range (i: %lu, len: %lu)\n", i, str_len(s));
 		abort();
 	}
 
@@ -311,7 +311,7 @@ static char str_get(string_t *s, size_t i)
 static void str_set(string_t *s, size_t i, char c)
 {
 	if (i > str_len(s)) {
-		printf("PANIC: string index out of range (i: %lu, len: %lu)\n", i, str_len(s));
+		fprintf(stderr, "PANIC: string index out of range (i: %lu, len: %lu)\n", i, str_len(s));
 		abort();
 	}
 
