@@ -203,7 +203,7 @@ char str_get(string_t *s, size_t i)
 void str_set(string_t *s, size_t i, char c)
 {
 	if (i > str_len(s)) {
-		printf(stderr, "PANIC: string index out of range (i: %lu, len: %lu)\n", i, str_len(s));
+		fprintf(stderr, "PANIC: string index out of range (i: %lu, len: %lu)\n", i, str_len(s));
 		abort();
 	}
 
