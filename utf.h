@@ -9,7 +9,7 @@
  * UTF-8 support, please use a more suitable library, such as libgrapheme.
  *
  * Additionally, you *must* have called setlocale(LC_ALL, "") at least once,
- * else these routines will decode UTF-16 by default on any platform (probably
+ * else these routines will decode UTF-32 by default on any platform (probably
  * not what you want).
  */
 
