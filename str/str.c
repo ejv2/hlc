@@ -4,12 +4,16 @@
  *
  * NOTE: This is a source-header library. You must both compile this source
  * file and include the corresponding header.
+ *
+ * Requirements: corresponding str.h be in include path
  */
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <limits.h>
+
+#include "str.h"
 
 /* Initial string buffer size allocated by str_new in bytes */
 #define STR_INITIAL_BUFSIZ 32
