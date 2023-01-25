@@ -2,9 +2,25 @@
  * str.h - C99 implementation of a high-level string
  * Copyright (C) Ethan Marshall - 2023
  *
- * NOTE: This is a source-header library. You must both compile the
- * corresponding source file and include this header.
+ * Requirements: stdarg.h, stdlib.h, stdio.h, limits.h
  */
+
+#ifdef HLC_AUTO_INCLUDE
+#define STR_AUTO_INCLUDE
+#endif
+
+#ifdef STR_AUTO_INCLUDE
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdarg.h>
+#include <limits.h>
+#endif
+
+/* Initial string buffer size allocated by str_new in bytes */
+#define STR_INITIAL_BUFSIZ 32
+
+/* The maximum size of a string in bytes */
+#define STR_SIZE_MAX ((size_t)-1)
 
 /*
  * string_t is a dynamically sized string with an associated length. Although
@@ -47,7 +63,15 @@ typedef int (*str_iterfunc)(size_t i, char elem);
  * If buffer allocation fails, the string will still be valid and will remain
  * at zero length.
  */
-string_t str_new();
+static string_t str_new()
+{
+	char *buf = calloc(STR_INITIAL_BUFSIZ, sizeof(char));
+	return (string_t){
+		.s = buf,
+		.e = buf,
+		.cap = STR_INITIAL_BUFSIZ,
+	};
+}
 
 /*
  * str_free frees all resources associated with a string and sets its length
@@ -55,20 +79,32 @@ string_t str_new();
  * with a performance penalty due to re-allocation. If wishing to reset to
  * empty, use str_reset or str_truncate.
  */
-void str_free(string_t *str);
+static void str_free(string_t *str)
+{
+	free(str->s);
+	str->e = str->s = NULL;
+	str->cap = 0;
+}
 
 /*
  * str_cap returns the capacity of the string, which is how many characters can
  * be written before a reallocation occurs.
  */
-size_t str_cap(const string_t *str);
+static size_t str_cap(const string_t *str)
+{
+	return (str->cap == 0) ? 0 : str->cap - 1;
+}
 
 /*
  * str_len returns the length of the string, which is how many characters the
  * string currently holds. Note that this is not necessarily how many UTF-8
  * runes it holds, but how many bytes are in the string currently.
  */
-size_t str_len(const string_t *str);
+static size_t str_len(const string_t *str)
+{
+	/* need to subtract one if non-zero, as the null byte does not count */
+	return str->e - str->s;
+}
 
 /*
  * str_grow grows the string by delta characters, meaning delta more characters
@@ -79,7 +115,39 @@ size_t str_len(const string_t *str);
  * If allocation fails or the maximum string capacity was reached, zero is
  * returned, else one.
  */
-int str_grow(string_t *str, size_t delta);
+static int str_grow(string_t *str, size_t delta)
+{
+	int stat = 1;
+	size_t oldlen = str->e - str->s;
+	size_t newcap = str->cap + delta;
+
+	/*
+	 * Workaround for unintuitive behaviour on zero start.
+	 * One byte extra is needed for NULL, so a zero start causes one byte
+	 * LESS for capacity on first allocation.
+	 */
+	if (str->cap == 0)
+		newcap++;
+
+	if (STR_SIZE_MAX - delta < str->cap) {
+		newcap = STR_SIZE_MAX;
+		stat = 0;
+	}
+
+	if (delta == 0) {
+		if (STR_SIZE_MAX - str->cap < str->cap) {
+			newcap = STR_SIZE_MAX;
+			stat = 0;
+		}
+		newcap = str->cap * 2;
+	}
+
+	str->s = realloc(str->s, sizeof(char) * newcap);
+	str->e = str->s + oldlen;
+	str->cap = newcap;
+
+	return stat;
+}
 
 /*
  * str_reserve ensures that string str can store at least delta more characters
@@ -88,7 +156,17 @@ int str_grow(string_t *str, size_t delta);
  * Returns zero if reallocation was attempted but failed and returns one on
  * success.
  */
-int str_reserve(string_t *str, size_t delta);
+static int str_reserve(string_t *str, size_t delta)
+{
+	size_t cap = str_cap(str);
+	size_t len = str_len(str);
+
+	if (cap - len >= delta) {
+		return -1;
+	}
+
+	return str_grow(str, delta);
+}
 
 /*
  * str_compact shrinks the string to the minimum size required to store all
@@ -97,20 +175,41 @@ int str_reserve(string_t *str, size_t delta);
  * called before any operations which cause a reallocation. If the reallcation
  * fails, the function becomes a no-op.
  */
-void str_compact(string_t *str);
+static void str_compact(string_t *str)
+{
+	size_t len = str->e - str->s;
+	char *buf = realloc(str->s, len + 1);
+	if (!buf)
+		return;
+
+	str->cap = len + 1;
+	str->s = buf;
+	str->e = str->s + len;
+}
 
 /*
  * str_truncate truncates the end of the string such that the string becomes
  * len in length. The string capacity is unaffected. If len is out of range, no
  * operation is performed.
  */
-void str_truncate(string_t *str, size_t len);
+static void str_truncate(string_t *str, size_t len)
+{
+	if (len >= (size_t)(str->e - str->s)) {
+		return;
+	}
+
+	str->e = str->s + len;
+	*str->e = '\0';
+}
 
 /*
  * str_reset resets the string to and empty string, but does not change the
  * capacity.
  */
-void str_reset(string_t *str);
+static void str_reset(string_t *str)
+{
+	str_truncate(str, 0);
+}
 
 /*
  * str_from returns a new string_t initialized with the null terminated C
@@ -119,7 +218,34 @@ void str_reset(string_t *str);
  * truncated to an empty string. cstr need not remain valid after str_from has
  * completed and may be discarded.
  */
-string_t str_from(const char *cstr);
+static string_t str_from(const char *cstr)
+{
+	const char *walk = cstr;
+	string_t ret = str_new();
+
+	if (!cstr)
+		return ret;
+
+	for (;;) {
+		*ret.e = *walk;
+		if (*walk++ == '\0')
+			break;
+		ret.e++;
+
+		/*
+		 * note: allowing the overwrite of the NULL here, as we intend
+		 * to reallocate anyway
+		 */
+		if ((size_t)(ret.e - ret.s) == ret.cap) {
+			if (!str_grow(&ret, 0)) {
+				str_free(&ret);
+				return str_new();
+			}
+		}
+	}
+
+	return ret;
+}
 
 /*
  * str_cstr returns the contents of the string as a C string, compatible with
@@ -129,21 +255,54 @@ string_t str_from(const char *cstr);
  * The results of this function may be invalid after any call which modifies
  * the string. *Never* save the results of this function.
  */
-char *str_cstr(const string_t *str);
+static char *str_cstr(const string_t *str)
+{
+	return str->s;
+}
 
 /*
  * str_clone constructs and returns a fresh copy of str. A new heap block is
  * allocated to store the new copy, as in strdup, unless the string has zero
  * length, in which case no allocation takes place.
  */
-string_t str_clone(const string_t *str);
+static string_t str_clone(const string_t *str)
+{
+	if (str_len(str) == 0) {
+		return (string_t){NULL, NULL, 0};
+	}
+	return str_from(str_cstr(str));
+}
 
 /*
  * str_concat returns a newly allocated string which stores the concatenation
  * of a and b. If allocation fails or the value would exceed the maximum
  * capacity, an empty string is returned.
  */
-string_t str_concat(const string_t *a, const string_t *b);
+static string_t str_concat(const string_t *a, const string_t *b)
+{
+	string_t work = str_new();
+	if (!str_grow(&work, str_len(a) + str_len(b)))
+		return work;
+
+	const char *walk = a->s;
+	if (walk) {
+		do {
+			*work.e = *walk;
+			walk++, work.e++;
+		} while (walk < a->e);
+	}
+
+	walk = b->s;
+	if (walk) {
+		do {
+			*work.e = *walk;
+			walk++, work.e++;
+		} while (walk < b->e);
+	}
+
+	*work.e = '\0';
+	return work;
+}
 
 /*
  * str_foreach calls f for every byte in the string s. For caveats when using
@@ -154,25 +313,67 @@ string_t str_concat(const string_t *a, const string_t *b);
  * incorrect behavior. Note that no string operation which modifies its memory
  * layout is safe to call in a str_iterfunc.
  */
-void str_foreach(string_t *s, str_iterfunc f);
+static void str_foreach(string_t *s, str_iterfunc f)
+{
+	const char *sanity_s = s->s, *sanity_e = s->e;
+
+	for (const char *walk = s->s; walk < s->e; walk++) {
+		if (sanity_s != s->s || sanity_e != s->e) {
+			fprintf(stderr, "PANIC: string incorrectly modified during foreach call (s[before/after]: [%p/%p], e[before/after]: [%p/%p]\n",
+					sanity_s, s->s, sanity_e, s->e);
+			abort();
+		}
+
+		if (!f(walk - s->s, *walk))
+			return;
+	}
+}
 
 /*
  * str_get returns the ith character from string s. If i is out of range,
  * str_get calls abort with a failure message.
  */
-char str_get(string_t *s, size_t i);
+static char str_get(string_t *s, size_t i)
+{
+	if (i > str_len(s)) {
+		fprintf(stderr, "PANIC: string index out of range (i: %lu, len: %lu)\n", i, str_len(s));
+		abort();
+	}
+
+	return s->s[i];
+}
 
 /*
  * str_set sets the byte at index i to the value c. If i is out of range,
  * str_set calls abort with a failure message.
  */
-void str_set(string_t *s, size_t i, char c);
+static void str_set(string_t *s, size_t i, char c)
+{
+	if (i > str_len(s)) {
+		fprintf(stderr, "PANIC: string index out of range (i: %lu, len: %lu)\n", i, str_len(s));
+		abort();
+	}
+
+	s->s[i] = c;
+}
 
 /*
  * str_append appends src to dst in place, guaranteeing that only a single
  * (re)allocation may take place.
  */
-void str_append(string_t *dst, const string_t *src);
+static void str_append(string_t *dst, const string_t *src)
+{
+	if (!src)
+		return;
+	if (!str_reserve(dst, str_len(src)))
+		return;
+
+	for (const char *walk = src->s; walk < src->e; walk++) {
+		*(dst->e++) = *walk;
+	}
+	*dst->e = '\0';
+	return;
+}
 
 /*
  * str_fmt formats a string as though it were returned by sprintf, guaranteeing
@@ -180,13 +381,52 @@ void str_append(string_t *dst, const string_t *src);
  * cannot overflow the stack. If allocation fails or fmt contains a syntax
  * error, an empty string is returned.
  */
-string_t str_fmt(const char *fmt, ...);
+static string_t str_fmt(const char *fmt, ...)
+{
+	string_t str = (string_t){NULL, NULL, 0};
+	int wlen = 0, written = 0;
+	va_list tmp, args;
+
+	va_start(args, fmt);
+	/* need a copy so that vsprintf does not mess everything up with va_arg */
+	va_copy(tmp, args);
+
+	wlen = vsnprintf(NULL, 0, fmt, args);
+	if (wlen < 0)
+		return str;
+	if (!str_grow(&str, wlen + 1))
+		return str;
+	va_end(args);
+
+	written = vsprintf(str.s, fmt, tmp);
+	va_end(tmp);
+
+	if (written < 0) {
+		str_free(&str);
+		return (string_t){NULL, NULL, 0};
+	}
+	str.e = str.s + written;
+
+	return str;
+}
 
 /*
  * str_equal returns true (>0) if string a and b are the same length and
  * contain the same text, else returns false (0).
  */
-int str_equal(const string_t *a, const string_t *b);
+static int str_equal(const string_t *a, const string_t *b)
+{
+	if (str_len(a) != str_len(b))
+		return 0;
+
+	for (const char *walk = a->s; walk != a->e; walk++) {
+		size_t i = (size_t)(walk - a->s);
+		if (*walk != b->s[i])
+			return 0;
+	}
+
+	return 1;
+}
 
 /*
  * str_compare lexicographically compares a and b using the same method as the
@@ -195,26 +435,87 @@ int str_equal(const string_t *a, const string_t *b);
  * returned value is greater than zero. If the strings are equal, zero is
  * returned. Else, a negative  integer is returned.
  */
-int str_compare(const string_t *a, const string_t *b);
+static int str_compare(const string_t *a, const string_t *b)
+{
+	const char *wa = a->s, *wb = b->s;
+	for (; *wa==*wb && *wa; wa++, wb++);
+	return *(unsigned char *)wa - *(unsigned char *)wb;
+}
 
 /*
  * str_contains returns true if the string str contains the substring substr at
  * any position.
  */
-int str_contains(const string_t *str, const char *substr);
+static int str_contains(const string_t *str, const char *substr)
+{
+	const char *walk, *subwalk = substr;
+	for (walk = str->s; walk <= str->e; walk++) {
+		/* *subwalk is null byte, we walked the whole substring, so match */
+		if (*subwalk == '\0') {
+			return 1;
+		}
+
+		/* not a match, reset subwalk */
+		if (*walk != *subwalk) {
+			subwalk = substr;
+			continue;
+		}
+
+		/* match; increment subwalk along with walk */
+		subwalk++;
+	}
+
+	/* reached end with no return; no match */
+	return 0;
+}
 
 /*
  * str_contains_char returns true (>0) if string str contains the character c,
  * else returns false (0).
  */
-int str_contains_char(const string_t *str, char c);
+static int str_contains_char(const string_t *str, char c)
+{
+	for (const char *walk = str->s; walk != str->e; walk++) {
+		if (*walk == c)
+			return 1;
+	}
+
+	return 0;
+}
 
 /*
  * str_prefixed returns true (>0) if string str begins with the string pref
  */
-int str_prefixed(const string_t *str, const char *pref);
+static int str_prefixed(const string_t *str, const char *pref)
+{
+	for (const char *walk = str->s, *swalk = pref; *swalk; walk++, swalk++) {
+		if (*walk != *swalk)
+			return 0;
+	}
+
+	return 1;
+}
 
 /*
  * str_suffixed returns true (>0) if string str ends with the string suff.
  */
-int str_suffixed(const string_t *str, const char *suff);
+static int str_suffixed(const string_t *str, const char *suff)
+{
+	const char *walk = str->e, *swalk;
+	size_t sufflen = 0;
+
+	/* first we need strlen of suffix */
+	for (const char *walk = suff; *walk; walk++, sufflen++);
+
+	/* walk back to where the suffix should begin */
+	walk -= sufflen;
+	if (walk < str->s)
+		return 0;
+
+	for (swalk = suff; walk < str->e; walk++, swalk++) {
+		if (*walk != *swalk)
+			return 0;
+	}
+
+	return 1;
+}

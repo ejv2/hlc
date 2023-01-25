@@ -190,6 +190,32 @@ string_t str_concat(const string_t *a, const string_t *b)
 	return work;
 }
 
+string_t str_concat(const string_t *a, const string_t *b)
+{
+	string_t work = str_new();
+	if (!str_grow(&work, str_len(a) + str_len(b)))
+		return work;
+
+	const char *walk = a->s;
+	if (walk) {
+		do {
+			*work.e = *walk;
+			walk++, work.e++;
+		} while (walk < a->e);
+	}
+
+	walk = b->s;
+	if (walk) {
+		do {
+			*work.e = *walk;
+			walk++, work.e++;
+		} while (walk < b->e);
+	}
+
+	*work.e = '\0';
+	return work;
+}
+
 char str_get(string_t *s, size_t i)
 {
 	if (i > str_len(s)) {
