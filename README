@@ -27,7 +27,7 @@ How to use
 Table of Contents
 -----------------
 
-str.h:   a portable and efficient Pascal-like strings implementation with
+str/:    a portable and efficient Pascal-like strings implementation with
          associated utilities
 utf.h:   a portable and simple wrapper around standard wide character functions
          for ease-of-use (should encourage people to actually support wide
