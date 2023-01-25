@@ -1,8 +1,14 @@
 #include <stdio.h>
 #include <string.h> /* heresy */
 
-#define STR_AUTO_INCLUDE
-#include "../str.h"
+/*
+ * note: this is not exemplar usage!
+ * Please do not include the source file into each translation unit
+ *
+ * instead, compile as though any other source file and include the
+ * corresponding header.
+ */
+#include "../str/str.c"
 
 static const char *testptr = "Hello, world!\nabcdefghijklmnopqrstuvwxyz12345678910111213141516";
 static const char *testptr2 = "";
