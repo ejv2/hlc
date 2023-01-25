@@ -190,6 +190,22 @@ string_t str_concat(const string_t *a, const string_t *b)
 	return work;
 }
 
+void str_foreach(string_t *s, str_iterfunc f)
+{
+       const char *sanity_s = s->s, *sanity_e = s->e;
+
+       for (const char *walk = s->s; walk < s->e; walk++) {
+               if (sanity_s != s->s || sanity_e != s->e) {
+                       fprintf(stderr, "PANIC: string incorrectly modified during foreach call (s[before/after]: [%p/%p], e[before/after]: [%p/%p]\n",
+                                       sanity_s, s->s, sanity_e, s->e);
+                       abort();
+               }
+
+               if (!f(walk - s->s, *walk))
+                       return;
+       }
+}
+
 char str_get(string_t *s, size_t i)
 {
 	if (i > str_len(s)) {
