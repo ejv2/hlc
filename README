@@ -34,7 +34,8 @@ utf.h:   a portable and simple wrapper around standard wide character functions
          characters).
 vect.h:  a safe, portable and TYPE-SAFE, C++-like vector implementation
 slice.h: an abstraction over any dynamic container with a length and
-         capacity, Go style
+         capacity, Go style. Automation of the age-old len, cap, realloc
+         pattern.
 sync.h:  (REQUIRES C11*) an implementation of a spinlock, mutex and atomic
          variables
 chan.h:  (REQUIRES C11*) an implementation of a by-value CSP channel, Go style
