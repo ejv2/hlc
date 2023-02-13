@@ -112,10 +112,63 @@ void test_reslice()
 	slc_free(&upper);
 }
 
+void test_copy()
+{
+	/* standard test */
+	slice_t base = slc_make(int16_t, 10, 10);
+	for (size_t i = 0; i < slc_len(&base); i++) {
+		((int16_t *)base.buf)[i] = i / 5;
+	}
+	slice_t lower = slc_reslice(&base, 0, 5);
+	slice_t upper = slc_reslice(&base, 5, 10);
+
+	slc_copy(&lower, &upper);
+	for (size_t i = 0; i < slc_len(&base); i++) {
+		int16_t val = ((int16_t *)base.buf)[i];
+		printf("s[%lu] = %d\n", i, val);
+		if (val != 1) {
+			fprintf(stderr, "wrong value copied");
+			exit(1);
+		}
+	}
+
+	/* differing sizes */
+	slice_t diff = slc_make(int16_t, 11, 11);
+	lower = slc_reslice(&diff, 0, 6);
+	upper = slc_reslice(&diff, 6, 11);
+
+	slc_copy(&lower, &upper);
+	for (size_t i = 0; i < slc_len(&diff); i++) {
+		printf("diff[%lu] = %lu\n", i, i / 5);
+		((int16_t *)diff.buf)[i] = i / 5;
+	}
+
+	/* overlapping */
+	slice_t over = slc_make(int16_t, 3, 3);
+	lower = slc_reslice(&over, 0, 2);
+	upper = slc_reslice(&over, 1, 3);
+
+	((int16_t *)over.buf)[0] = 1;
+	((int16_t *)over.buf)[1] = 2;
+
+	for (size_t i = 0; i < slc_len(&over); i++) {
+		printf("prior: over[%lu] = %d\n", i, ((int16_t *)over.buf)[i]);
+	}
+	slc_copy(&upper, &lower);
+	for (size_t i = 0; i < slc_len(&over); i++) {
+		printf("after: over[%lu] = %d\n", i, ((int16_t *)over.buf)[i]);
+	}
+
+	slc_free(&base);
+	slc_free(&diff);
+	slc_free(&over);
+}
+
 int main()
 {
 	test_new();
 	test_grow();
 	test_ref();
 	test_reslice();
+	test_copy();
 }
