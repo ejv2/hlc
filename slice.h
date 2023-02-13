@@ -2,7 +2,7 @@
  * slice.h - C99 implementation of a slice buffer
  * Copyright (C) Ethan Marshall - 2023
  *
- * Requirements: stdlib.h stdio.h stdint.h
+ * Requirements: stdlib.h stdio.h stdint.h string.h
  */
 
 #ifdef HLC_AUTO_INCLUDE
@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <string.h>
 #endif
 
 /*
@@ -222,4 +223,31 @@ static slice_t slc_reslice(slice_t *base, size_t lower, size_t upper)
 	ret.cap -= lower;
 
 	return ret;
+}
+
+/*
+ * slc_copy copies the contents from src into dst, filling as many elements as
+ * possible before slc_len(dst) is exhausted (not slc_cap(dst)!). This allows
+ * for copying between subslices. Source and destination may overlap. The
+ * number of elements copied are returned, which will be the minimum of the
+ * length of the source and the length of the destination. If the size of the
+ * elements in the source and destination are not the same, slc_copy panics.
+ */
+static size_t slc_copy(slice_t *dst, slice_t *src)
+{
+	size_t count;
+
+	if (dst->esize != src->esize) {
+		fprintf(stderr, "PANIC: destination and source slice type mismatch (src: %lu, dst: %lu)\n",
+				src->esize, dst->esize);
+		abort();
+	}
+
+	if (slc_len(dst) <= slc_len(src))
+		count = slc_len(dst);
+	else
+		count = slc_len(src);
+
+	memmove(dst->buf, src->buf, count * src->esize);
+	return count;
 }
