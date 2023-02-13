@@ -62,6 +62,11 @@ static slice_t _slc_make(size_t size, size_t ilen, size_t icap)
 	else
 		cap = slc_initial_cap;
 
+	if (ilen > cap) {
+		fprintf(stderr, "PANIC: invalid slice len/cap (len: %lu, cap: %lu)\n", ilen, cap);
+		abort();
+	}
+
 	s.buf = calloc(cap, size);
 	if (!s.buf) {
 		fprintf(stderr, "PANIC: out of memory (slice alloc)\n");
