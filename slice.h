@@ -176,7 +176,7 @@ static void slc_grow(slice_t *s, size_t cap)
 	}
 	s->buf = alloc;
 
-	for (walk = (int8_t *)s->buf + s->cap; walk < (int8_t *)s->buf + cap; walk++) {
+	for (walk = (int8_t *)s->buf + s->cap; walk < (int8_t *)s->buf + (cap * s->esize); walk++) {
 		*walk = 0;
 	}
 	s->cap = cap;
