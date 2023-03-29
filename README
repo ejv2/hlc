@@ -36,6 +36,8 @@ vect.h:  a safe, portable and TYPE-SAFE, C++-like vector implementation
 slice.h: an abstraction over any dynamic container with a length and
          capacity, Go style. Automation of the age-old len, cap, realloc
          pattern.
+buf.h:   macros for assistance when working with heap-allocated buffers. can be
+         used as a minimal alternative to slice.h
 sync.h:  (REQUIRES C11*) an implementation of a spinlock, mutex and atomic
          variables
 chan.h:  (REQUIRES C11*) an implementation of a by-value CSP channel, Go style
