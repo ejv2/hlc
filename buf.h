@@ -31,6 +31,29 @@
 	size_t bufname##_len = 0, bufname##_cap = 2;
 
 /*
+ * BUF_ATTACH inherits buffer data from already stored information. All normal
+ * buffer routines may then be used with bufname as the name. Information is
+ * stored back to the origin only after a call to BUF_DETACH
+ */
+#define BUF_ATTACH(bufname, typename, buf, len, cap)		\
+	typename *bufname = buf;				\
+	size_t bufname##_len = len, bufname##_cap = cap;	\
+
+/*
+ * BUF_DETACH stores metadata about the buffer called bufname back into its
+ * original position. Every call to BUF_ATTACH must be matched with at least
+ * one call to BUF_DETACH. If BUF_FREE is called on a local buffer, you must
+ * still detach it.
+ *
+ * Note: The buffer remains valid after a call to BUF_DETACH, but you must call
+ * it again if you modify your copy of the buffer.
+ */
+#define BUF_DETACH(bufname, buf, len, cap)	\
+	buf = bufname;				\
+	len = bufname##_len;			\
+	cap = bufname##_cap;			\
+
+/*
  * BUF_LEN returns the number of elements in the buffer.
  */
 #define BUF_LEN(bufname) (bufname##_len)
