@@ -94,7 +94,16 @@ int main()
 		printf("FAIL: full stack accepted push after shrinking (base: %p, top %p)\n", stk.base, stk.top);
 		exit(1);
 	}
+
 	stk_empty(&stk);
+	ct.a = 0;
+	stk_push(&stk, &ct);
+
+	struct complex_type *cptr = ((struct complex_type *)stk_index(&stk, 0));
+	if (cptr->a != 0) {
+		printf("FAIL: incorrect element returned by index (expect a=0, got a=%d)\n", cptr->a);
+		exit(1);
+	}
 
 	free(buf);
 }
