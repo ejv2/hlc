@@ -91,6 +91,23 @@ static int stk_pop(stack_t *stk, void *dest)
 }
 
 /*
+ * stk_index returns a pointer to the element at zero-indexed offset ind from
+ * the stack base. The pointer remains valid until the stack is resized or that
+ * index is popped, and can be used to modify the contained data.
+ *
+ * If ind is greater than or equal to the stack length, stk_index panics.
+ */
+static void *stk_index(stack_t *stk, size_t ind)
+{
+	if (ind >= stk_len(stk)) {
+		fprintf(stderr, "PANIC: stack index out of range (attempted index %lu, stack length %lu)\n", ind, stk_len(stk));
+		abort();
+	}
+
+	return (void *)((char *)stk->base + ind * stk->esize);
+}
+
+/*
  * stk_empty truncates the stack to zero length
  */
 static void stk_empty(stack_t *stk)
